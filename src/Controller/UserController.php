@@ -9,6 +9,7 @@ use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserController extends AbstractController
@@ -39,6 +40,8 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $this->setRole($form, $user);
+
             $password = $this->userPasswordHasher->hashPassword(
                 $user,
                 $user->getPassword()
@@ -64,6 +67,8 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $this->setRole($form, $user);
+
             $password = $this->userPasswordHasher->hashPassword(
                 $user,
                 $user->getPassword()
@@ -78,5 +83,12 @@ class UserController extends AbstractController
         }
 
         return $this->render('user/edit.html.twig', ['form' => $form->createView(), 'user' => $user]);
+    }
+
+    private function setRole(FormInterface $form, User $user): void
+    {
+        // Retrieve choicetype field value
+        // Set the role
+        $form->get('isAdmin')->getData() ? $user->setRoles(['ROLE_ADMIN']) : $user->setRoles([]);
     }
 }
