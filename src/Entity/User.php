@@ -11,7 +11,14 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
-#[UniqueEntity('email')]
+#[UniqueEntity(
+    fields: ['email'],
+    message: '{{ value }} n\'est pas disponible'
+)]
+#[UniqueEntity(
+    fields: ['username'],
+    message: '{{ value }} n\'est pas disponible'
+)]
 #[ORM\Table(name: '`user`')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -22,12 +29,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $id;
 
     #[ORM\Column(type: 'string', length: 25, unique: true)]
-    #[Assert\NotBlank(
-        message: 'Vous devez saisir un nom d\'utilisateur.'
+    #[Assert\Length(
+        min: 3,
+        max: 25,
+        minMessage: 'Votre nom d\'utilisateur doit contenir minimum {{ limit }} caractères',
+        maxMessage: 'Votre nom d\'utilisateur doit contenir maximum {{ limit }} caractères'
     )]
     private $username;
 
     #[ORM\Column(type: 'string', length: 64)]
+    #[Assert\Length(
+        min: 8,
+        max: 64,
+        minMessage: 'Votre mot de passe doit contenir minimum {{ limit }} caractères',
+        maxMessage: 'Votre mot de passe doit contenir maximum {{ limit }} caractères'
+    )]
     private $password;
 
     #[ORM\Column(type: 'string', length: 60, unique: true)]
@@ -41,6 +57,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $roles = [];
 
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: Task::class)]
+    #[Assert\Valid()]
     private $tasks;
 
     public function __construct()
@@ -92,7 +109,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see PasswordAuthenticatedUserInterface
      */
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
