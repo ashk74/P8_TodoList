@@ -17,9 +17,15 @@ class Task
     #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 64)]
     #[Assert\NotBlank(
         message: 'Vous devez saisir un titre.'
+    )]
+    #[Assert\Length(
+        min: 3,
+        max: 64,
+        minMessage: 'Le titre doit contenir minimum {{ limit }} caractères',
+        maxMessage: 'Le titre doit contenir maximum {{ limit }} caractères'
     )]
     private $title;
 
