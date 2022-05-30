@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Tests\Unit\Entity;
+namespace App\Tests\Entity;
 
 use App\Entity\Task;
 use App\Entity\User;
+use App\DataFixtures\UserFixtures;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
 
 class UserTest extends KernelTestCase
@@ -145,7 +146,7 @@ class UserTest extends KernelTestCase
 	 */
 	public function testInvalidUsedEmail()
 	{
-		$this->databaseTool->loadAliceFixture([dirname(__DIR__) . '/Fixtures/UserFixtures.yaml']);
+		$this->databaseTool->loadFixtures([UserFixtures::class]);
 		$this->assertPropertyConstraint($this->user->setEmail('johndoe@email.com'), 1);
 	}
 
@@ -156,8 +157,8 @@ class UserTest extends KernelTestCase
 	 */
 	public function testInvalidUsedUsername()
 	{
-		$this->databaseTool->loadAliceFixture([dirname(__DIR__) . '/Fixtures/UserFixtures.yaml']);
-		$this->assertPropertyConstraint($this->user->setUsername('John,Doe'), 1);
+		$this->databaseTool->loadFixtures([UserFixtures::class]);
+		$this->assertPropertyConstraint($this->user->setUsername('John.Doe'), 1);
 	}
 
 	/**
@@ -199,11 +200,11 @@ class UserTest extends KernelTestCase
 	}
 
 	/**
-	 * Test getters and setters with empty values
+	 * Test getters and setters with empty User
 	 *
 	 * @return void
 	 */
-	public function testResultOnEmptyPropertyValue()
+	public function testResultOnEmptyUser()
 	{
 		$user = new User();
 

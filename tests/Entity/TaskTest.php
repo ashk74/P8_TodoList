@@ -1,27 +1,22 @@
 <?php
 
-namespace App\Tests\Unit\Entity;
+namespace App\Tests\Entity;
 
 use App\Entity\Task;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-
-use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
 
 class TaskTest extends KernelTestCase
 {
 	private Task $task;
 	private User $user;
-	protected AbstractDatabaseTool $databaseTool;
 
 
 	public function setUp(): void
 	{
 		$this->task = $this->getTaskEntity();
 		$this->user = $this->getUserEntity();
-		$this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
 	}
 
 	/**
@@ -63,7 +58,7 @@ class TaskTest extends KernelTestCase
 	public function assertPropertyConstraint(Task $task, int $expectedErrors)
 	{
 		self::bootKernel();
-		$errors = $this->getContainer()->get(ValidatorInterface::class)->validate($task);
+		$errors = static::getContainer()->get(ValidatorInterface::class)->validate($task);
 		$errorMessages = [];
 
 		/** @var ConstraintViolation $error */
@@ -136,18 +131,18 @@ class TaskTest extends KernelTestCase
 	}
 
 	/**
-	 * Test getters and setters with empty values
+	 * Test getters and setters with empty Task
 	 *
 	 * @return void
 	 */
-	public function testResultOnEmptyPropertyValue()
+	public function testResultOnEmptyTask()
 	{
 		$task = new Task();
 
 		$this->assertEmpty($task->getId());
 		$this->assertEmpty($task->getTitle());
 		$this->assertNull($task->getContent());
-		$this->assertNotEmpty($task->getAuthorUsername());
+		$this->assertSame($task->getAuthorUsername(), 'Anonyme');
 		$this->assertNull($task->getAuthor());
 		$this->assertFalse($this->task->isDone());
 		$this->assertNotEmpty($this->task->getCreatedAt());

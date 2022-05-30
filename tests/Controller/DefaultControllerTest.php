@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Tests\Functional\Controller;
+namespace App\Tests\Controller;
 
+use App\DataFixtures\UserFixtures;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -18,6 +19,7 @@ class DefaultControllerTest extends WebTestCase
     {
         $this->client = static::createClient();
         $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
+        $this->databaseTool->loadFixtures([UserFixtures::class]);
     }
 
     public function testHomepageNotLogged(): void
@@ -26,16 +28,17 @@ class DefaultControllerTest extends WebTestCase
 
         $this->assertResponseRedirects('http://localhost/login', Response::HTTP_FOUND);
         $this->client->followRedirect();
-        $this->assertSelectorTextContains('.navbar-brand', 'To Do List app');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'Connexion');
     }
 
     public function testHomepageLogged(): void
     {
         $user = ($this->getContainer()->get(UserRepository::class))->findOneBy(['username' => 'John.Doe']);
-        $this->databaseTool->loadAliceFixture(['/./.' . dirname(__DIR__) . '/Fixtures/UserFixtures.yaml']);
         $this->client->loginUser($user);
         $this->client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'Bienvenue sur Todo List');
     }
 }
