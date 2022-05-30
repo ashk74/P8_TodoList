@@ -1,6 +1,0 @@
-App\Entity\User:
-  user:
-    username: "John,Doe"
-    email: "johndoe@email.com"
-    password: "password"
-    roles: "[]"
