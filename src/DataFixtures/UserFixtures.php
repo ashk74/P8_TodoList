@@ -24,7 +24,7 @@ class UserFixtures extends Fixture
             ->setPassword($this->passwordHasher->hashPassword($user, 'password'));
         $manager->persist($user);
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 9; $i++) {
             $user = new User();
             $user->setEmail($faker->freeEmail())
                 ->setUsername($faker->userName())
@@ -32,7 +32,6 @@ class UserFixtures extends Fixture
 
             $manager->persist($user);
         }
-
         $manager->flush();
     }
 }
