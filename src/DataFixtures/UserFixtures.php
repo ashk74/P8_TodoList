@@ -19,16 +19,17 @@ class UserFixtures extends Fixture
         $faker = \Faker\Factory::create('fr_FR');
 
         $user = new User();
-        $user->setEmail('johndoe@email.com')
-            ->setUsername('John.Doe')
+        $user->setEmail('admin@email.com')
+            ->setUsername('Admin')
+            ->setRoles(['ROLE_ADMIN'])
             ->setPassword($this->passwordHasher->hashPassword($user, 'password'));
         $manager->persist($user);
 
         for ($i = 0; $i < 9; $i++) {
             $user = new User();
             $user->setEmail($faker->freeEmail())
-                ->setUsername($faker->userName())
-                ->setPassword($this->passwordHasher->hashPassword($user, '123'));
+                ->setUsername('User' . $i + 1)
+                ->setPassword($this->passwordHasher->hashPassword($user, 'password'));
 
             $manager->persist($user);
         }

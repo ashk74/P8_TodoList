@@ -3,7 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\DataFixtures\UserFixtures;
-use App\Repository\UserRepository;
+use App\Tests\Traits\ConnectUser;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -12,6 +12,9 @@ use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
 
 class UserControllerTest extends WebTestCase
 {
+    // Load ConnectUser Trait
+    use ConnectUser;
+
     private KernelBrowser|null $client = null;
     protected AbstractDatabaseTool $databaseTool;
 
@@ -23,22 +26,11 @@ class UserControllerTest extends WebTestCase
     }
 
     /**
-     * Retrieve a user and connect him
+     * Create dataProvider to test all routes related to users
      *
-     * @param bool $isAdmin Define user role
-     *
-     * @return void
+     * @return array
      */
-    private function connectUser(bool $isAdmin = false): void
-    {
-        $user = (static::getContainer()->get(UserRepository::class))->findOneByUsername('John.Doe');
-
-        if ($isAdmin) $user->setRoles(['ROLE_ADMIN']);
-
-        $this->client->loginUser($user);
-    }
-
-    public function usersUri()
+    public function usersUri(): array
     {
         return [
             ['/users'],
@@ -50,7 +42,7 @@ class UserControllerTest extends WebTestCase
     /**
      * @dataProvider usersUri
      */
-    public function testDisplayUsersListNotLogged($uri): void
+    public function testRequestOnUsersRoutesNotLogged($uri): void
     {
         $this->client->request('GET', $uri);
 
@@ -60,12 +52,10 @@ class UserControllerTest extends WebTestCase
         $this->assertSelectorTextContains('h1', 'Connexion');
     }
 
-    // TODO Check redirection errors to users logged without admin roles
-
     /**
      * @dataProvider usersUri
      */
-    public function testDisplayUsersListAsAdmin($uri): void
+    public function testRequestOnUsersRoutesAsAdmin($uri): void
     {
         $this->connectUser(true);
         $this->client->request('GET', $uri);
@@ -75,52 +65,27 @@ class UserControllerTest extends WebTestCase
 
     public function testCreateUserAsAdmin(): void
     {
-        // Récupérer un utilisateur
-        // Ajouter le ROLE_ADMIN
-        // Se connecter
-        $user = (static::getContainer()->get(UserRepository::class))->findOneByUsername('John.Doe');
-        $user->setRoles(['ROLE_ADMIN']);
-        $this->client->loginUser($user);
-
-        // Faire une requête sur la page user_create
-        $this->client->request('GET', '/users/create');
-
-        // Code status = 200
-        $this->assertResponseIsSuccessful();
-
-        // Séléctionner le bouton du formulaire
-        // Envoyer le formulaire
-        $this->client->submitForm('Ajouter', [
-            'user[username]' => 'John.Wick',
-            'user[password][first]' => 'password',
-            'user[password][second]' => 'password',
-            'user[email]' => 'johnwick@email.com',
-            'user[isAdmin]' => 0,
-        ]);
-
-        // Vérifier que la redirection renvoie vers la liste des utilisateurs
-        // Code status 302
-        $this->assertResponseRedirects('/users', Response::HTTP_FOUND);
-
-        // Suivre la redirection
-        $this->client->followRedirect();
-
-        // Code status = 200
-        $this->assertResponseIsSuccessful();
-
-        // Récupérer le message confirmant qu'un nouvel utilisateur à été ajouter
-        $this->assertSelectorExists('.alert.alert-success');
+        $this->assertSuccessfullySubmitForm();
     }
 
     public function testEditUserAsAdmin(): void
     {
-        $this->client->request('GET', '/users/1/edit');
+        $this->assertSuccessfullySubmitForm(true);
+    }
 
-        $this->client->submitForm('Modifier', [
-            'user[username]' => 'John.Wick',
+    private function assertSuccessfullySubmitForm(bool $editMode = false)
+    {
+        $uri = $editMode ? '/users/2/edit' : '/users/create';
+        $button = $editMode ? 'Modifier' : 'Ajouter';
+
+        $this->connectUser(true);
+        $this->client->request('GET', $uri);
+
+        $this->client->submitForm($button, [
+            'user[username]' => 'John.Doe',
             'user[password][first]' => 'password',
             'user[password][second]' => 'password',
-            'user[email]' => 'johnwick@email.com',
+            'user[email]' => 'john.doe@email.com',
             'user[isAdmin]' => 0,
         ]);
 

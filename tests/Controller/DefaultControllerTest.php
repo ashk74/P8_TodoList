@@ -3,7 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\DataFixtures\UserFixtures;
-use App\Repository\UserRepository;
+use App\Tests\Traits\ConnectUser;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -12,6 +12,8 @@ use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
 
 class DefaultControllerTest extends WebTestCase
 {
+    use ConnectUser;
+
     private KernelBrowser|null $client = null;
     protected AbstractDatabaseTool $databaseTool;
 
@@ -32,10 +34,20 @@ class DefaultControllerTest extends WebTestCase
         $this->assertSelectorTextContains('h1', 'Connexion');
     }
 
-    public function testHomepageLogged(): void
+    public function testHomepageAsUser(): void
     {
-        $user = ($this->getContainer()->get(UserRepository::class))->findOneBy(['username' => 'John.Doe']);
-        $this->client->loginUser($user);
+        $this->assertHomepageLogged();
+    }
+
+    public function testHomepageAsAdmin(): void
+    {
+        $this->assertHomepageLogged(true);
+        $this->assertSelectorTextContains('.btn.btn-primary', 'Créer un utilisateur');
+    }
+
+    private function assertHomepageLogged(bool $isAdmin = false)
+    {
+        $this->connectUser($isAdmin);
         $this->client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();

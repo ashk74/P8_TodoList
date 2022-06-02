@@ -4,7 +4,7 @@ namespace App\Tests\Controller;
 
 use App\DataFixtures\TaskFixtures;
 use App\DataFixtures\UserFixtures;
-use App\Repository\UserRepository;
+use App\Tests\Traits\ConnectUser;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -13,6 +13,8 @@ use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
 
 class TaskControllerTest extends WebTestCase
 {
+    use ConnectUser;
+
     private KernelBrowser|null $client = null;
     protected AbstractDatabaseTool $databaseTool;
 
@@ -21,22 +23,6 @@ class TaskControllerTest extends WebTestCase
         $this->client = static::createClient();
         $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
         $this->databaseTool->loadFixtures([UserFixtures::class, TaskFixtures::class]);
-    }
-
-    /**
-     * Retrieve a user and connect him
-     *
-     * @param bool $isAdmin Define user role
-     *
-     * @return void
-     */
-    private function connectUser(bool $isAdmin = false): void
-    {
-        $user = (static::getContainer()->get(UserRepository::class))->findOneBy(['username' => 'John.Doe']);
-
-        if ($isAdmin) $user->setRoles(['ROLE_ADMIN']);
-
-        $this->client->loginUser($user);
     }
 
     public function diplayableTasksUri()
@@ -67,7 +53,7 @@ class TaskControllerTest extends WebTestCase
      * @dataProvider otherTasksUri
      *
      */
-    public function testAccessToTaskPagesNotLogged($uri): void
+    public function testRequestOnTasksRoutesNotLogged($uri): void
     {
         $this->client->request('GET', $uri);
 
@@ -81,7 +67,7 @@ class TaskControllerTest extends WebTestCase
     /**
      * @dataProvider diplayableTasksUri
      */
-    public function testAccessToTaskPagesAsUser($uri): void
+    public function testRequestOnUsersRoutesAsUser($uri): void
     {
         $this->connectUser();
         $this->client->request('GET', $uri);
@@ -92,7 +78,7 @@ class TaskControllerTest extends WebTestCase
     /**
      * @dataProvider diplayableTasksUri
      */
-    public function testAccessToTaskPagesAsAdmin($uri): void
+    public function testRequestOnUsersRoutesAsAdmin($uri): void
     {
         $this->connectUser(true);
         $this->client->request('GET', $uri);
@@ -100,7 +86,7 @@ class TaskControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function testCreateTaskLogged(): void
+    public function testCreateTaskAsUser(): void
     {
         $this->connectUser();
         $this->client->request('GET', '/tasks/create');
@@ -117,7 +103,7 @@ class TaskControllerTest extends WebTestCase
         $this->assertSelectorExists('.alert.alert-success');
     }
 
-    public function testEditTaskLogged(): void
+    public function testEditTaskAsUser(): void
     {
         $this->connectUser();
         $this->client->request('GET', '/tasks/1/edit');
@@ -146,7 +132,7 @@ class TaskControllerTest extends WebTestCase
         $this->assertSelectorExists('.alert.alert-success');
     }
 
-    public function testToggleTaskLogged(): void
+    public function testToggleTaskAsUser(): void
     {
         $this->connectUser();
         $this->client->request('GET', '/tasks/1/toggle');

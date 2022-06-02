@@ -4,14 +4,15 @@ namespace App\Tests\Entity;
 
 use App\Entity\Task;
 use App\Entity\User;
+use App\Tests\Traits\CustomAssert;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TaskTest extends KernelTestCase
 {
+	use CustomAssert;
+
 	private Task $task;
 	private User $user;
-
 
 	public function setUp(): void
 	{
@@ -26,7 +27,7 @@ class TaskTest extends KernelTestCase
 	 */
 	public function getTaskEntity(): Task
 	{
-		return (new Task())
+		return (new Task)
 			->setTitle('Task title')
 			->setContent('Task content')
 			->setCreatedAt(new \DateTime());
@@ -39,39 +40,22 @@ class TaskTest extends KernelTestCase
 	 */
 	public function getUserEntity(): User
 	{
-		return $user = (new User)
-			->setEmail('john.doe@email.com')
-			->setUsername('JohnDoe')
+		return (new User())
+			->setEmail('john.wick@email.com')
+			->setUsername('John.Wick')
 			->setPassword('password')
 			->setRoles(['ROLE_ADMIN'])
 			->addTask($this->task);
 	}
 
-	/**
-	 * Check constraint validation errors
-	 *
-	 * @param \App\Entity\Task $task
-	 * @param integer $expectedErrors
-	 *
-	 * @return void
-	 */
-	public function assertPropertyConstraint(Task $task, int $expectedErrors)
-	{
-		self::bootKernel();
-		$errors = static::getContainer()->get(ValidatorInterface::class)->validate($task);
-		$errorMessages = [];
-
-		/** @var ConstraintViolation $error */
-		foreach ($errors as $error) {
-			$errorMessages[] = $error->getPropertyPath() . ' => ' . $error->getMessage();
-		}
-
-		$this->assertCount($expectedErrors, $errors, implode(', ', $errorMessages));
-	}
-
-	public function testValidEntity()
+	public function testValidTask()
 	{
 		$this->assertPropertyConstraint($this->task, 0);
+	}
+
+	public function testValidBlankAuthor()
+	{
+		$this->assertPropertyConstraint($this->task->setAuthor(null), 0);
 	}
 
 	public function testInvalidBlankTitle()
@@ -107,7 +91,7 @@ class TaskTest extends KernelTestCase
 		$this->assertSame($this->task->getId(), null);
 		$this->assertSame($this->task->getTitle(), 'Task title');
 		$this->assertSame($this->task->getContent(), 'Task content');
-		$this->assertSame($this->task->getAuthorUsername(), 'JohnDoe');
+		$this->assertSame($this->task->getAuthorUsername(), 'John.Wick');
 		$this->assertNotEmpty($this->task->getAuthor());
 		$this->assertFalse($this->task->isDone());
 		$this->assertNotEmpty($this->task->getCreatedAt());
@@ -123,8 +107,8 @@ class TaskTest extends KernelTestCase
 		$this->assertNotSame($this->task->getId(), 1);
 		$this->assertNotSame($this->task->getTitle(), 'Wrong title');
 		$this->assertNotSame($this->task->getContent(), 'Wrong content');
-		$this->assertNotSame($this->task->getAuthorUsername(), 'John Doe');
-		$this->assertNotSame($this->task->getAuthor(), 'John Doe');
+		$this->assertNotSame($this->task->getAuthorUsername(), 'John Wick');
+		$this->assertNotSame($this->task->getAuthor(), 'John Wick');
 		$this->assertNotSame($this->task->isDone(), true);
 		$this->assertNotSame($this->task->isDone(), $this->task->toggle(!$this->task->isDone()));
 		$this->assertNotSame($this->task->getCreatedAt(), new \DateTime());

@@ -21,6 +21,15 @@ class SecurityControllerTest extends WebTestCase
         $this->databaseTool->loadFixtures([UserFixtures::class]);
     }
 
+    public function credentialsInformations(): array
+    {
+        return [
+            ['Bad.Credentials', 'Wrong.Password', 'http://localhost/login'],
+            ['User1', 'password', 'http://localhost/'],
+            ['Admin', 'password', 'http://localhost/']
+        ];
+    }
+
     public function testLoginIsUp(): void
     {
         $this->client->request('GET', '/login');
@@ -29,33 +38,30 @@ class SecurityControllerTest extends WebTestCase
         $this->assertSelectorTextContains('h1', 'Connexion');
     }
 
-    public function testLoginWithBadCredentials(): void
+    /**
+     * @dataProvider credentialsInformations
+     */
+    public function testLoginCredentials($username, $password, $uri): void
     {
         $this->client->request('GET', '/login');
 
         $this->client->submitForm('Se connecter', [
-            '_username' => 'John.Doe',
-            '_password' => 'wrong'
+            '_username' => $username,
+            '_password' => $password
         ]);
 
-        $this->assertResponseRedirects('http://localhost/login', Response::HTTP_FOUND);
+        $this->assertResponseRedirects($uri, Response::HTTP_FOUND);
         $this->client->followRedirect();
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('.alert.alert-danger');
-    }
 
-    public function testLoginWithGoodCredentials(): void
-    {
-        $this->client->request('GET', '/login');
+        if ($uri === 'http://localhost/') {
+            $this->assertSelectorTextContains('h1', 'Bienvenue sur Todo List');
+        } else {
+            $this->assertSelectorExists('.alert.alert-danger');
+        }
 
-        $this->client->submitForm('Se connecter', [
-            '_username' => 'John.Doe',
-            '_password' => 'password'
-        ]);
-
-        $this->assertResponseRedirects('http://localhost/', Response::HTTP_FOUND);
-        $this->client->followRedirect();
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Bienvenue sur Todo List');
+        if ($username === 'Admin') {
+            $this->assertSelectorTextContains('.btn.btn-primary', 'Créer un utilisateur');
+        }
     }
 }

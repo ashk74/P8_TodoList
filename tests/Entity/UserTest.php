@@ -5,13 +5,15 @@ namespace App\Tests\Entity;
 use App\Entity\Task;
 use App\Entity\User;
 use App\DataFixtures\UserFixtures;
+use App\Tests\Traits\CustomAssert;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
 
 class UserTest extends KernelTestCase
 {
+	use CustomAssert;
+
 	private User $user;
 	private Task $task;
 	protected AbstractDatabaseTool $databaseTool;
@@ -44,36 +46,14 @@ class UserTest extends KernelTestCase
 	public function getUserEntity(): User
 	{
 		return (new User())
-			->setEmail('john.doe@email.com')
-			->setUsername('JohnDoe')
+			->setEmail('arthur.pendragon@email.com')
+			->setUsername('Arthur.Pendragon')
 			->setPassword('password')
 			->setRoles(['ROLE_ADMIN'])
 			->addTask($this->task);
 	}
 
-	/**
-	 * Check constraint validation errors
-	 *
-	 * @param \App\Entity\User $user
-	 * @param integer $expectedErrors
-	 *
-	 * @return void
-	 */
-	public function assertPropertyConstraint(User $user, int $expectedErrors)
-	{
-		self::bootKernel();
-		$errors = $this->getContainer()->get(ValidatorInterface::class)->validate($user);
-		$errorMessages = [];
-
-		/** @var ConstraintViolation $error */
-		foreach ($errors as $error) {
-			$errorMessages[] = $error->getPropertyPath() . ' => ' . $error->getMessage();
-		}
-
-		$this->assertCount($expectedErrors, $errors, implode(', ', $errorMessages));
-	}
-
-	public function testValidEntity()
+	public function testValidUser()
 	{
 		$this->assertPropertyConstraint($this->user, 0);
 	}
@@ -147,7 +127,7 @@ class UserTest extends KernelTestCase
 	public function testInvalidUsedEmail()
 	{
 		$this->databaseTool->loadFixtures([UserFixtures::class]);
-		$this->assertPropertyConstraint($this->user->setEmail('johndoe@email.com'), 1);
+		$this->assertPropertyConstraint($this->user->setEmail('admin@email.com'), 1);
 	}
 
 	/**
@@ -158,7 +138,7 @@ class UserTest extends KernelTestCase
 	public function testInvalidUsedUsername()
 	{
 		$this->databaseTool->loadFixtures([UserFixtures::class]);
-		$this->assertPropertyConstraint($this->user->setUsername('John.Doe'), 1);
+		$this->assertPropertyConstraint($this->user->setUsername('Admin'), 1);
 	}
 
 	/**
@@ -169,8 +149,8 @@ class UserTest extends KernelTestCase
 	public function testResultOnExpectedPropertyValue()
 	{
 		$this->assertSame($this->user->getId(), null);
-		$this->assertSame($this->user->getEmail(), 'john.doe@email.com');
-		$this->assertSame($this->user->getUserIdentifier(), 'JohnDoe');
+		$this->assertSame($this->user->getEmail(), 'arthur.pendragon@email.com');
+		$this->assertSame($this->user->getUserIdentifier(), 'Arthur.Pendragon');
 		$this->assertSame($this->user->getUsername(), $this->user->getUserIdentifier());
 		$this->assertSame($this->user->getPassword(), 'password');
 		$this->assertContains('ROLE_USER', $this->user->getRoles());
@@ -191,8 +171,8 @@ class UserTest extends KernelTestCase
 	{
 		$this->assertNotSame($this->user->getId(), 1);
 		$this->assertNotSame($this->user->getEmail(), 'wrong@email.com');
-		$this->assertNotSame($this->user->getUserIdentifier(), 'John.Doe');
-		$this->assertNotSame($this->user->getUsername(), 'John.Doe');
+		$this->assertNotSame($this->user->getUserIdentifier(), 'JohnDoe');
+		$this->assertNotSame($this->user->getUsername(), 'JohnDoe');
 		$this->assertNotSame($this->user->getPassword(), 'wrong-password');
 		$this->assertNotContains('ROLE_SUPER_ADMIN', $this->user->getRoles());
 		$this->assertNull($this->user->getSalt());
