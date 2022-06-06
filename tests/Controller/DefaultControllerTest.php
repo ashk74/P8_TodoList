@@ -28,7 +28,7 @@ class DefaultControllerTest extends WebTestCase
     {
         $this->client->request('GET', '/');
 
-        $this->assertResponseRedirects('http://localhost/login', Response::HTTP_FOUND);
+        $this->assertResponseRedirects('/login', Response::HTTP_FOUND);
         $this->client->followRedirect();
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('h1', 'Connexion');
