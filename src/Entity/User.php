@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -9,7 +11,14 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
-#[UniqueEntity('email')]
+#[UniqueEntity(
+    fields: ['email'],
+    message: '{{ value }} n\'est pas disponible'
+)]
+#[UniqueEntity(
+    fields: ['username'],
+    message: '{{ value }} n\'est pas disponible'
+)]
 #[ORM\Table(name: '`user`')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -20,12 +29,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $id;
 
     #[ORM\Column(type: 'string', length: 25, unique: true)]
-    #[Assert\NotBlank(
-        message: 'Vous devez saisir un nom d\'utilisateur.'
+    #[Assert\Length(
+        min: 3,
+        max: 25,
+        minMessage: 'Votre nom d\'utilisateur doit contenir minimum {{ limit }} caractères',
+        maxMessage: 'Votre nom d\'utilisateur doit contenir maximum {{ limit }} caractères'
     )]
     private $username;
 
     #[ORM\Column(type: 'string', length: 64)]
+    #[Assert\Length(
+        min: 8,
+        max: 64,
+        minMessage: 'Votre mot de passe doit contenir minimum {{ limit }} caractères',
+        maxMessage: 'Votre mot de passe doit contenir maximum {{ limit }} caractères'
+    )]
     private $password;
 
     #[ORM\Column(type: 'string', length: 60, unique: true)]
@@ -37,6 +55,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'json')]
     private $roles = [];
+
+    #[ORM\OneToMany(mappedBy: 'author', targetEntity: Task::class)]
+    #[Assert\Valid()]
+    private $tasks;
+
+    public function __construct()
+    {
+        $this->tasks = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -82,7 +109,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see PasswordAuthenticatedUserInterface
      */
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
@@ -132,5 +159,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public function getTasks(): Collection
+    {
+        return $this->tasks;
+    }
+
+    public function addTask(Task $task): self
+    {
+        if (!$this->tasks->contains($task)) {
+            $this->tasks[] = $task;
+            $task->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTask(Task $task): self
+    {
+        if ($this->tasks->removeElement($task)) {
+            // set the owning side to null (unless already changed)
+            if ($task->getAuthor() === $this) {
+                $task->setAuthor(null);
+            }
+        }
+
+        return $this;
     }
 }

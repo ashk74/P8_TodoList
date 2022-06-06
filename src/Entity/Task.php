@@ -17,9 +17,15 @@ class Task
     #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 64)]
     #[Assert\NotBlank(
         message: 'Vous devez saisir un titre.'
+    )]
+    #[Assert\Length(
+        min: 3,
+        max: 64,
+        minMessage: 'Le titre doit contenir minimum {{ limit }} caractères',
+        maxMessage: 'Le titre doit contenir maximum {{ limit }} caractères'
     )]
     private $title;
 
@@ -31,6 +37,9 @@ class Task
 
     #[ORM\Column(type: 'boolean')]
     private $isDone;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'tasks')]
+    private $author;
 
     public function __construct()
     {
@@ -89,5 +98,22 @@ class Task
         $this->isDone = $flag;
 
         return $this;
+    }
+
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): self
+    {
+        $this->author = $author;
+
+        return $this;
+    }
+
+    public function getAuthorUsername(): string
+    {
+        return $this->getAuthor() !== null ? $this->getAuthor()->getUserIdentifier() : 'Anonyme';
     }
 }
