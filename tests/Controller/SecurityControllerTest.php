@@ -2,6 +2,7 @@
 
 namespace App\Tests\Controller;
 
+use App\Tests\Traits\ConnectUser;
 use App\DataFixtures\UserFixtures;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -11,6 +12,8 @@ use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
 
 class SecurityControllerTest extends WebTestCase
 {
+    use ConnectUser;
+
     private KernelBrowser|null $client = null;
     protected AbstractDatabaseTool $databaseTool;
 
@@ -63,5 +66,16 @@ class SecurityControllerTest extends WebTestCase
         if ($username === 'Admin') {
             $this->assertSelectorTextContains('.btn.btn-primary', 'Créer un utilisateur');
         }
+    }
+
+    public function testAccessLoginPageWhenLogged()
+    {
+        $this->connectUser();
+        $this->client->request('GET', '/login');
+
+        $this->assertResponseRedirects('/', Response::HTTP_FOUND);
+        $this->client->followRedirect();
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'Bienvenue sur Todo List');
     }
 }
