@@ -24,9 +24,9 @@ class SecurityControllerTest extends WebTestCase
     public function credentialsInformations(): array
     {
         return [
-            ['Bad.Credentials', 'Wrong.Password', 'http://localhost/login'],
-            ['User1', 'password', 'http://localhost/'],
-            ['Admin', 'password', 'http://localhost/']
+            ['Bad.Credentials', 'Wrong.Password', '/login'],
+            ['User1', 'password', '/'],
+            ['Admin', 'password', '/']
         ];
     }
 
@@ -46,15 +46,15 @@ class SecurityControllerTest extends WebTestCase
         $this->client->request('GET', '/login');
 
         $this->client->submitForm('Se connecter', [
-            '_username' => $username,
-            '_password' => $password
+            'username' => $username,
+            'password' => $password
         ]);
 
         $this->assertResponseRedirects($uri, Response::HTTP_FOUND);
         $this->client->followRedirect();
         $this->assertResponseIsSuccessful();
 
-        if ($uri === 'http://localhost/') {
+        if ($uri === '/') {
             $this->assertSelectorTextContains('h1', 'Bienvenue sur Todo List');
         } else {
             $this->assertSelectorExists('.alert.alert-danger');
