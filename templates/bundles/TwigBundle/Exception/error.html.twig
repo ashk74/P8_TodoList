@@ -1,0 +1,16 @@
+{# templates/bundles/TwigBundle/Exception/error404.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block header_title %}
+    <h1>{{ status_text }}</h1>
+{% endblock %}
+
+{% block body %}
+    <p>Erreur : {{ status_code }}</p>
+    <p>Erreur : {{ status_text }}</p>
+
+    {% if app.user %}
+        <p><a href="{{ path('homepage') }}">Retourner sur la page d'accueil</a></p>
+    {% endif %}
+
+{% endblock %}
