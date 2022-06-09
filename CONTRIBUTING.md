@@ -6,6 +6,12 @@
 
 Follow these [instructions](./README.md) to install the project.
 
+### Rules
+
+Your code must respect
+- [PSR 1](https://www.php-fig.org/psr/psr-1/)
+- [PSR 12](https://www.php-fig.org/psr/psr-12/)
+
 ### Issues
 
 #### Solve an issue
