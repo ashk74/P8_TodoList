@@ -6,8 +6,9 @@ use App\Entity\Task;
 use App\Repository\UserRepository;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
-class TaskFixtures extends Fixture
+class TaskFixtures extends Fixture implements DependentFixtureInterface
 {
     private UserRepository $userRepo;
 
@@ -21,12 +22,14 @@ class TaskFixtures extends Fixture
         $faker = \Faker\Factory::create('fr_FR');
         $users = $this->userRepo->findAll();
 
-        $task = new Task();
-        $task->setTitle('Tâche anonyme')
-            ->setContent('Contenu de la tâche')
-            ->setCreatedAt(new \DateTime())
-            ->setAuthor(null);
-        $manager->persist($task);
+        for ($i = 0; $i < 3; $i++) {
+            $task = new Task();
+            $task->setTitle('Tâche anonyme')
+                ->setContent('Contenu de la tâche')
+                ->setCreatedAt(new \DateTime())
+                ->setAuthor(null);
+            $manager->persist($task);
+        }
 
         for ($i = 0; $i < 9; $i++) {
             $task = (new Task)

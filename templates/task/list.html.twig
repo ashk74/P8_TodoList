@@ -7,21 +7,40 @@
 {% endblock %}
 
 {% block body %}
-    <a href="{{ path('task_create') }}" class="btn btn-info pull-right">Créer une tâche</a>
+    {% if tasks|length != 0 %}
+    <div class="row">
+        <div class="col-sm-12 col-md-12 col-lg-12">
+            <a href="{{ path('task_create') }}" class="btn btn-info">Créer une tâche</a>
+        </div>
+    </div>
+    {% endif %}
     <div class="row">
         {% for task in tasks %}
-        <div class="col-sm-4 col-lg-4 col-md-4">
-            <div class="thumbnail">
-                <div class="caption">
+            <div class="card col-sm-4 col-lg-4 col-md-4">
+                <div class="card-header">
                     <h4 class="pull-right">
-                        {% if task.isDone %}<span class="glyphicon glyphicon-ok"></span>{% else %}<span class="glyphicon glyphicon-remove"></span>{% endif %}
+                        {% if task.isDone %}
+                            <span class="glyphicon glyphicon-ok"></span>
+                        {% else %}
+                            <span class="glyphicon glyphicon-remove"></span>
+                        {% endif %}
                     </h4>
-                    <h4><a href="{{ path('task_edit', {'id' : task.id }) }}">{{ task.title }}</a></h4>
-                    <p>{{ task.content }}</p>
-                    <p>{{ task.authorUsername }}</p>
+                    <h5 class="card-title">
+                        <a href="{{ path('task_edit', {'id' : task.id }) }}">{{ task.title }}</a>
+                    </h5>
                 </div>
-                <div>
-                    <form action="{{ path('task_toggle', {'id' : task.id }) }}">
+                <div class="card-body">
+                    <p class="card-text">
+                        {{ task.content }}
+                    </p>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Auteur : {{ task.authorUsername }}</li>
+                    <li class="list-group-item">le {{ task.createdAt|date('d/m/Y') }}</li>
+                </ul>
+                <div class="card-body">
+                    <p class="card-text">
+                        <form action="{{ path('task_toggle', {'id' : task.id }) }}">
                         <button class="btn btn-success btn-sm pull-right">
                             {% if not task.isDone %}Marquer comme faite{% else %}Marquer non terminée{% endif %}
                         </button>
@@ -31,9 +50,9 @@
                             <button class="btn btn-danger btn-sm pull-right">Supprimer</button>
                         </form>
                     {% endif %}
+                    </p>
                 </div>
             </div>
-        </div>
         {% else %}
             <div class="alert alert-warning" role="alert">
                 Il n'y a pas encore de tâche enregistrée. <a href="{{ path('task_create') }}" class="btn btn-warning pull-right">Créer une tâche</a>
